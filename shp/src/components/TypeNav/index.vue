@@ -1,7 +1,7 @@
 <template>
     <div class="type-nav">
             <div class="container">
-                <h2 class="all">全部商品分类</h2>
+                <h2 class="all" @mouseenter="showAll" @mouseleave="leaveAll">全部商品分类</h2>
                 <nav class="nav">
                     <a href="###">服装城</a>
                     <a href="###">美妆馆</a>
@@ -12,21 +12,21 @@
                     <a href="###">有趣</a>
                     <a href="###">秒杀</a>
                 </nav>
-                <div class="sort">
-                    <div class="all-sort-list2">
+                <div class="sort" v-show="show">
+                    <div class="all-sort-list2" @click="goSearch">
                         <div class="item" v-for="(c,index) in categoryList" :key="c.categoryId" :style="{backgroundColor:index === enterIndex?'skyBlue':''}">
                             <h3 @mouseenter="enter(index)" @mouseleave="leave">
-                                <a href="">{{c.categoryName}}</a>
+                                <a :data-categoryName="c.categoryName" :data-category1Id="c.categoryId">{{c.categoryName}}</a>
                             </h3>
                             <div class="item-list clearfix" :style="{display:index === enterIndex?'block':'none'}">
                                 <div class="subitem" v-for="c1 in c.categoryChild" :key="c1.categoryId">
                                     <dl class="fore">
                                         <dt>
-                                            <a href="">{{c1.categoryName}}</a>
+                                            <a :data-categoryName="c1.categoryName" :data-category2Id="c1.categoryId">{{c1.categoryName}}</a>
                                         </dt>
                                         <dd>
                                             <em v-for="c2 in c1.categoryChild" :key="c2.categoryId">
-                                                <a href="">{{c2.categoryName}}</a>
+                                                <a :data-categoryName="c2.categoryName" :data-category3Id="c2.categoryId">{{c2.categoryName}}</a>
                                             </em>
                                         </dd>
                                     </dl>
@@ -46,18 +46,52 @@ export default {
     data(){
         return {
             enterIndex:-1,
+            show:true
         }
     },
     mounted(){
-        this.$store.dispatch('reqCategoryList')
         console.log(mapState)
+        if(this.$route.path !== '/home'){
+            this.show = false
+        }
     },
     methods:{
         enter (index) {
             this.enterIndex = index;
+            this.show = true
         },
         leave () {
             this.enterIndex = -1;
+            if(this.$route.path !== '/home'){
+                this.show = false
+            }
+        },
+        showAll () {
+            this.show = true
+        },
+        leaveAll () {
+            if(this.$route.path !== '/home'){
+                this.show = false
+            }
+        },
+        goSearch ($evnet) {
+            console.log($evnet)
+            let element = $evnet.target
+            let {categoryname, category1Id, category2Id,category3Id } = element.dataset;
+            if(categoryname) {
+                let location = {name:'search'}
+                let query = {categoryName:categoryname,categoryId:null}
+                if(category1Id) {
+                    query.categoryId = category1Id
+                } else if (category2Id) {
+                    query.categoryId = category2Id
+                } else {
+                    query.categoryId = category3Id
+                }
+                location.query = query
+                this.$router.push(location)
+            }
+            
         }
     },
     computed: {
